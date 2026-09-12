@@ -1,0 +1,43 @@
+# Original Ender 3 defaults. Copy this file if you want multiple machine or
+# pen profiles, then pass the profile with --config.
+
+[printer]
+x_min = 0.0
+x_max = 220.0
+y_min = 0.0
+y_max = 220.0
+z_min = 0.0
+z_max = 250.0
+
+[pen]
+# The pen is 39 mm left and 25 mm toward the front of the nozzle.
+offset_x_mm = -39.0
+offset_y_mm = -25.0
+
+# The current mechanical calibration makes Z=0 draw cleanly.
+draw_z_mm = 0.0
+lift_z_mm = 1.0
+z_feedrate = 300.0
+# Z and XY calibration values are now recorded above.
+calibrated = true
+
+[plot]
+# The SVG page's lower-left corner starts here on the bed. Include any desired
+# margin inside the SVG itself.
+origin_x_mm = 10.0
+origin_y_mm = 10.0
+draw_feedrate = 900.0
+travel_feedrate = 3000.0
+tolerance_mm = 0.002
+
+# Home X/Y first, then Z. This attachment overhangs the bed safely during Z
+# homing.
+home_xy = true
+home_z = true
+
+# Optional parking position after the drawing.
+# park_x_mm = 0.0
+# park_y_mm = 0.0
+
+[tool]
+executable = "svg2gcode"

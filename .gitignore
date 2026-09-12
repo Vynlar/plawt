@@ -1,0 +1,11 @@
+.venv/
+.work/
+.DS_Store
+.coverage
+.pytest_cache/
+*.log
+__pycache__/
+*.py[cod]
+*.egg-info/
+output/
+calibration/*.gcode

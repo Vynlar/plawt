@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ender-pen-plotter"
+version = "0.1.0"
+description = "Config-driven SVG to G-code pipeline for an Ender 3 pen plotter"
+requires-python = ">=3.9"
+dependencies = [
+  "tomli>=2.0; python_version < '3.11'",
+]
+
+[project.scripts]
+ender-pen-plotter = "ender_pen_plotter.cli:main"
+ender-pen-preview = "ender_pen_plotter.preview_cli:main"
+ender-pen-pattern = "ender_pen_plotter.pattern_cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
