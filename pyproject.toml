@@ -12,9 +12,9 @@ dependencies = [
 ]
 
 [project.scripts]
-ender-pen-plotter = "ender_pen_plotter.cli:main"
-ender-pen-preview = "ender_pen_plotter.preview_cli:main"
-ender-pen-pattern = "ender_pen_plotter.pattern_cli:main"
+ender-pen-plotter = "plawt.cli:main"
+ender-pen-preview = "plawt.preview_cli:main"
+ender-pen-pattern = "plawt.pattern_cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

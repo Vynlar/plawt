@@ -2,8 +2,8 @@ import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-from ender_pen_plotter.pattern_cli import main as pattern_main
-from ender_pen_plotter.patterns import (
+from plawt.pattern_cli import main as pattern_main
+from plawt.patterns import (
     euler_path,
     join_nearby_paths,
     optimize_path_order,
@@ -13,7 +13,7 @@ from ender_pen_plotter.patterns import (
     simplify_polyline,
     sierpinski_svg,
 )
-from ender_pen_plotter.patterns.generators.sierpinski import sierpinski_triangles
+from plawt.patterns.generators.sierpinski import sierpinski_triangles
 
 
 class PatternTests(unittest.TestCase):

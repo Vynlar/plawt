@@ -1,7 +1,7 @@
 import unittest
 
-from ender_pen_plotter.config import PrinterConfig
-from ender_pen_plotter.gcode import add_travel_feedrate, analyze, validate
+from plawt.config import PrinterConfig
+from plawt.gcode import add_travel_feedrate, analyze, validate
 
 
 class GCodeTests(unittest.TestCase):

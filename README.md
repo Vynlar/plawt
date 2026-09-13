@@ -137,9 +137,9 @@ it to the printer.
 
 ## Developing Patterns
 
-Shared pattern machinery lives in `src/ender_pen_plotter/patterns/core.py`.
+Shared pattern machinery lives in `src/plawt/patterns/core.py`.
 Design-specific geometry belongs in its own module under
-`src/ender_pen_plotter/patterns/generators/`. A generator can build points or
+`src/plawt/patterns/generators/`. A generator can build points or
 edges with its own algorithm, then use `euler_path` and `render_svg` when those
 operations fit the design. Register its CLI adapter in
 `patterns/generators/__init__.py`; the adapter supplies the design's arguments

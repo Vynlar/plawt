@@ -2,12 +2,12 @@
 
 ## Project Shape
 
-- This is a Python 3.9+ package under `src/ender_pen_plotter`; run commands from the repository root because the default config path is relative.
+- This is a Python 3.9+ package under `src/plawt`; run commands from the repository root because the default config path is relative.
 - `ender-pen-plotter` wraps the external Rust `svg2gcode` executable; it adds configurable homing, Z pen lift, XY offset compensation, feedrates, and machine-bound validation.
 - `ender-pen-preview` renders existing G-code as self-contained HTML;
   `ender-pen-pattern` generates reusable SVG patterns. Shared pattern
-  machinery is in `src/ender_pen_plotter/patterns/core.py`; design-specific
-  generators are modules under `src/ender_pen_plotter/patterns/generators/`.
+  machinery is in `src/plawt/patterns/core.py`; design-specific generators are
+  modules under `src/plawt/patterns/generators/`.
 - `config/ender3.toml` is the active machine profile. `.work/` and `output/` are ignored generated/test artifacts, not source-of-truth files.
 
 ## Setup

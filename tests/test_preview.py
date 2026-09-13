@@ -1,8 +1,8 @@
 import unittest
 
-from ender_pen_plotter.config import Config, PenConfig, PlotConfig, PrinterConfig, ToolConfig
-from ender_pen_plotter.gcode import extract_segments
-from ender_pen_plotter.preview import render_preview_html
+from plawt.config import Config, PenConfig, PlotConfig, PrinterConfig, ToolConfig
+from plawt.gcode import extract_segments
+from plawt.preview import render_preview_html
 
 
 class PreviewTests(unittest.TestCase):

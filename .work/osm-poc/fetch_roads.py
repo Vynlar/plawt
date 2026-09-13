@@ -20,7 +20,7 @@ from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from ender_pen_plotter.patterns.path_optimizer import (
+from plawt.patterns.path_optimizer import (
     join_nearby_paths,
     optimize_path_order,
     simplify_paths,
