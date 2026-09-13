@@ -10,7 +10,7 @@ z_max = 250.0
 offset_x_mm = -39.0
 offset_y_mm = -25.0
 draw_z_mm = 0.0
-lift_z_mm = 1.0
+lift_z_mm = 2.0
 z_feedrate = 300.0
 calibrated = true
 
