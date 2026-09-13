@@ -1,9 +1,9 @@
-# Ender 3 Pen Plotter
+# Plawt
 
-This project converts SVG paths into G-code for an original Ender 3 with a
-spring-loaded pen attachment. It uses
+Plawt converts SVG paths into G-code for configurable pen plotters. It uses
 [`sameer/svg2gcode`](https://github.com/sameer/svg2gcode) for SVG conversion
-and adds the Ender-specific pen motion and safety checks around it.
+and adds configurable pen motion, tool offsets, homing, feedrates, and machine
+envelope safety checks around it.
 
 ## Install
 
@@ -42,17 +42,18 @@ standard-library TOML reader; older Python versions install `tomli`.
 
 ## Configure
 
-Edit `config/ender3.toml`. The profile defaults to the original Ender 3's
-nominal 220 x 220 x 250 mm volume.
+Start with `config/ender3.toml` as an example machine profile, or create a
+profile for your own printer. Profiles define the machine envelope, pen offset,
+Z heights, feedrates, origin, and homing behavior.
 
 The profile uses the measured Z values (`draw_z_mm = 2` and `lift_z_mm = 3.5`),
 the measured pen offset, and `calibrated = true`. Update these values whenever
 the attachment is remounted or mechanically changed.
 
-`offset_x_mm` and `offset_y_mm` are the pen tip's position relative to the
-nozzle in printer coordinates. If the pen is 10 mm in +X from the nozzle, set
-`offset_x_mm = 10`. The wrapper compensates by moving the nozzle to the desired
-pen position minus that offset.
+`offset_x_mm` and `offset_y_mm` are the tool tip's position relative to the
+nozzle in printer coordinates. If the tool tip is 10 mm in +X from the nozzle,
+set `offset_x_mm = 10`. The wrapper compensates by moving the nozzle to the
+desired tool position minus that offset.
 
 `origin_x_mm` and `origin_y_mm` are the desired lower-left corner of the SVG
 page on the bed. The wrapper derives the corresponding nozzle origin. Any
@@ -79,8 +80,8 @@ The generated file uses:
 - `G1 Z<draw_z_mm> F<z_feedrate>` to lower the pen.
 - `G1 Z<lift_z_mm> F<z_feedrate>` to lift the pen.
 
-Speeds are in mm/min. The active profile draws at 1170 mm/min; reduce this if
-line quality suffers after changing the pen.
+Speeds are in mm/min. The example profile draws at 1170 mm/min; tune this for
+your machine, tool, and material.
 
 Before writing a file, the wrapper checks the commanded nozzle envelope, the
 actual pen envelope after offset compensation, and all explicit Z values
@@ -104,7 +105,7 @@ warning if the drawing leaves the configured machine limits.
 ## Pen Calibration
 
 Calibration is interactive rather than a blind Z sweep. Generate a calibration
-file with the desired nominal down and up heights:
+file with the desired nominal draw and lift heights:
 
 ```sh
 .venv/bin/ender-pen-plotter \
@@ -115,18 +116,17 @@ file with the desired nominal down and up heights:
   --calibration-cycles 3
 ```
 
-The file uses Marlin `M0` pauses. With the pen clear of the bed, continue the
-file from the LCD and it will home X/Y and then Z through the limit switches
-using separate `G28 X Y` and `G28 Z` commands. Place paper after homing. It
-moves to `down_z`, pauses so you can slide the pen in its holder until it
-barely touches the paper, and draws a short test line. It then moves to
-`up_z` so you can confirm the pen clears the paper. The process repeats for
-the requested number of cycles.
+The file uses Marlin-compatible `M0` pauses. With the tool clear of the bed,
+continue the file from the controller and it will home X/Y and then Z through
+the configured limit switches. Place paper after homing. It moves to `down_z`,
+pauses so you can adjust the tool until it barely touches the paper, and draws
+a short test line. It then moves to `up_z` so you can confirm the tool clears
+the paper. The process repeats for the requested number of cycles.
 
-The profile enables Z homing because this attachment overhangs the bed safely.
-Set `home_z = false` if the attachment changes. Inspect the file before
-running it and keep the printer attended. `--calibrate-z` remains an alias for
-`--calibrate-pen`.
+Enable Z homing only when the mounted tool is clear of the bed and safe to home.
+Set `home_z = false` if the tool or machine setup requires it. Inspect the file
+before running it and keep the machine attended. `--calibrate-z` remains an
+alias for `--calibrate-pen`.
 
 After confirming the heights, put them in the profile:
 
@@ -164,5 +164,5 @@ per registered generator:
 ```
 
 The wrapper homes X/Y first and Z second by default, then raises to the
-configured lift height. Keep the printer attended for the first runs and test
-with the pen lifted before allowing contact with paper.
+configured lift height. Keep the machine attended for the first runs and test
+with the tool lifted before allowing contact with paper.
