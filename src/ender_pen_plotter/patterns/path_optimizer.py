@@ -1,0 +1,123 @@
+"""Pen-up path ordering and orientation helpers."""
+
+from __future__ import annotations
+
+import math
+from typing import Sequence
+
+
+Point = tuple[float, float]
+Polyline = Sequence[Point]
+RouteItem = tuple[int, bool]
+
+
+def _distance(first: Point, second: Point) -> float:
+    return math.hypot(second[0] - first[0], second[1] - first[1])
+
+
+def _start(path: Polyline, reversed_path: bool) -> Point:
+    return path[-1] if reversed_path else path[0]
+
+
+def _end(path: Polyline, reversed_path: bool) -> Point:
+    return path[0] if reversed_path else path[-1]
+
+
+def optimize_path_order(
+    paths: Sequence[Polyline],
+    *,
+    start_point: Point | None = None,
+    two_opt_passes: int = 2,
+) -> list[RouteItem]:
+    """Return path indexes and orientations with short connecting travel.
+
+    The initial route uses nearest-endpoint insertion. Each 2-opt pass applies
+    first-improvement reversals to the route; reversing a route section also
+    reverses every polyline in that section so drawing direction remains valid.
+    The input paths are never mutated.
+    """
+    if two_opt_passes < 0:
+        raise ValueError("two_opt_passes must not be negative")
+
+    valid_paths = [index for index, path in enumerate(paths) if len(path) >= 2]
+    if not valid_paths:
+        return []
+
+    route: list[RouteItem] = []
+    remaining = valid_paths.copy()
+    current = start_point
+    while remaining:
+        if current is None:
+            index = remaining.pop(0)
+            reversed_path = False
+        else:
+            index, reversed_path = min(
+                (
+                    (candidate, reverse)
+                    for candidate in remaining
+                    for reverse in (False, True)
+                ),
+                key=lambda item: _distance(
+                    current, _start(paths[item[0]], item[1])
+                ),
+            )
+            remaining.remove(index)
+        route.append((index, reversed_path))
+        current = _end(paths[index], reversed_path)
+
+    for _ in range(two_opt_passes):
+        improved = False
+        for first in range(len(route)):
+            for last in range(first, len(route)):
+                previous_end = (
+                    start_point
+                    if first == 0
+                    else _end(paths[route[first - 1][0]], route[first - 1][1])
+                )
+                next_start = (
+                    None
+                    if last == len(route) - 1
+                    else _start(paths[route[last + 1][0]], route[last + 1][1])
+                )
+                old_start = _start(paths[route[first][0]], route[first][1])
+                old_end = _end(paths[route[last][0]], route[last][1])
+                new_start = old_end
+                new_end = old_start
+
+                old_boundary = 0.0
+                new_boundary = 0.0
+                if previous_end is not None:
+                    old_boundary += _distance(previous_end, old_start)
+                    new_boundary += _distance(previous_end, new_start)
+                if next_start is not None:
+                    old_boundary += _distance(old_end, next_start)
+                    new_boundary += _distance(new_end, next_start)
+
+                if new_boundary + 1e-9 < old_boundary:
+                    route[first : last + 1] = [
+                        (index, not reversed_path)
+                        for index, reversed_path in reversed(route[first : last + 1])
+                    ]
+                    improved = True
+                    break
+            if improved:
+                break
+        if not improved:
+            break
+
+    return route
+
+
+def optimize_paths(
+    paths: Sequence[Polyline],
+    *,
+    start_point: Point | None = None,
+    two_opt_passes: int = 2,
+) -> list[list[Point]]:
+    """Return copied, ordered, and oriented polylines."""
+    return [
+        list(reversed(paths[index])) if reversed_path else list(paths[index])
+        for index, reversed_path in optimize_path_order(
+            paths, start_point=start_point, two_opt_passes=two_opt_passes
+        )
+    ]

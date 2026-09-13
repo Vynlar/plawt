@@ -18,6 +18,10 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+
+from ender_pen_plotter.patterns.path_optimizer import optimize_path_order
+
 
 EARTH_RADIUS_M = 6_378_137.0
 OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter"
@@ -225,7 +229,7 @@ def render_svg(
             )
     description = (
         "Downtown Providence roads from OpenStreetMap; "
-        f"{len(roads)} ways, {path_count} clipped paths"
+        f"{len(roads)} optimized road paths, {path_count} SVG paths"
     )
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="{width_mm:g}mm" height="{height_mm:g}mm" viewBox="0 0 {width_mm:g} {height_mm:g}">
@@ -237,15 +241,29 @@ def render_svg(
 '''
 
 
+def optimize_roads(roads: Sequence[tuple[str, list[Polyline]]]) -> list[tuple[str, list[Polyline]]]:
+    road_paths = [(highway, path) for highway, paths in roads for path in paths]
+    route = optimize_path_order(
+        [path for _, path in road_paths], start_point=(0.0, 0.0), two_opt_passes=2
+    )
+    return [
+        (
+            road_paths[index][0],
+            [list(reversed(road_paths[index][1])) if reversed_path else road_paths[index][1]],
+        )
+        for index, reversed_path in route
+    ]
+
+
 def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--refresh", action="store_true", help="ignore the cached response")
-    # The active profile has a 39 mm negative X pen offset and a 10 mm origin,
-    # so a 160 mm page leaves safe nozzle clearance on the 220 mm bed.
-    parser.add_argument("--width-mm", type=float, default=160.0)
-    parser.add_argument("--height-mm", type=float, default=180.0)
+    # The centered PoC profile uses a 39 mm negative X pen offset, so a 140 mm
+    # page leaves safe nozzle clearance after centering on the 220 mm bed.
+    parser.add_argument("--width-mm", type=float, default=140.0)
+    parser.add_argument("--height-mm", type=float, default=160.0)
     parser.add_argument("--margin-mm", type=float, default=8.0)
     parser.add_argument("--stroke-width-mm", type=float, default=0.18)
     return parser.parse_args(argv)
@@ -256,7 +274,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         query = overpass_query(DEFAULT_BBOX)
         data = fetch_osm(query, args.cache, refresh=args.refresh)
-        roads = osm_polylines(data, DEFAULT_BBOX)
+        roads = optimize_roads(osm_polylines(data, DEFAULT_BBOX))
         if not roads:
             raise RuntimeError("the response contained no roads in the requested bbox")
         svg = render_svg(
@@ -273,7 +291,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    print(f"wrote {len(roads)} OSM ways to {args.output}")
+    print(f"wrote {len(roads)} optimized road paths to {args.output}")
     return 0
 
 
