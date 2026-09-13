@@ -45,7 +45,7 @@ standard-library TOML reader; older Python versions install `tomli`.
 Edit `config/ender3.toml`. The profile defaults to the original Ender 3's
 nominal 220 x 220 x 250 mm volume.
 
-The profile uses the measured Z values (`draw_z_mm = 0` and `lift_z_mm = 1`),
+The profile uses the measured Z values (`draw_z_mm = 2` and `lift_z_mm = 3.5`),
 the measured pen offset, and `calibrated = true`. Update these values whenever
 the attachment is remounted or mechanically changed.
 
@@ -131,8 +131,8 @@ running it and keep the printer attended. `--calibrate-z` remains an alias for
 After confirming the heights, put them in the profile:
 
 ```toml
-draw_z_mm = 0.0
-lift_z_mm = 1.0
+draw_z_mm = 2.0
+lift_z_mm = 3.5
 calibrated = true
 ```
 

@@ -14,9 +14,9 @@ z_max = 250.0
 offset_x_mm = -39.0
 offset_y_mm = -25.0
 
-# The current mechanical calibration makes Z=0 draw cleanly.
-draw_z_mm = 0.0
-lift_z_mm = 2.0
+# The current mechanical calibration makes Z=2 draw cleanly.
+draw_z_mm = 2.0
+lift_z_mm = 3.5
 z_feedrate = 300.0
 # Z and XY calibration values are now recorded above.
 calibrated = true
