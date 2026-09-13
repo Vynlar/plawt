@@ -26,7 +26,7 @@ calibrated = true
 # margin inside the SVG itself.
 origin_x_mm = 10.0
 origin_y_mm = 10.0
-draw_feedrate = 900.0
+draw_feedrate = 1170.0
 travel_feedrate = 3000.0
 tolerance_mm = 0.002
 

@@ -23,6 +23,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from ender_pen_plotter.patterns.path_optimizer import (
     join_nearby_paths,
     optimize_path_order,
+    simplify_paths,
 )
 
 
@@ -204,6 +205,7 @@ def render_svg(
     margin_mm: float,
     stroke_width_mm: float,
     join_gap_mm: float,
+    simplify_tolerance_mm: float,
 ) -> str:
     if width_mm <= 2 * margin_mm or height_mm <= 2 * margin_mm:
         raise ValueError("page dimensions must leave room for the margin")
@@ -226,7 +228,8 @@ def render_svg(
         for _, paths in roads
         for path in paths
     ]
-    joined_paths = join_nearby_paths(page_paths, max_gap=join_gap_mm)
+    simplified_paths = simplify_paths(page_paths, tolerance=simplify_tolerance_mm)
+    joined_paths = join_nearby_paths(simplified_paths, max_gap=join_gap_mm)
     path_elements = [
         f'  <path fill="none" stroke="black" stroke-width="{stroke_width_mm:g}" '
         f'stroke-linecap="round" stroke-linejoin="round" d="{svg_path(path)}" />'
@@ -234,7 +237,9 @@ def render_svg(
     ]
     description = (
         "Downtown Providence roads from OpenStreetMap; "
-        f"{len(page_paths)} optimized paths, {len(joined_paths)} joined SVG paths"
+        f"{len(page_paths)} optimized paths, "
+        f"{len(joined_paths)} joined SVG paths, "
+        f"simplification tolerance {simplify_tolerance_mm:g} mm"
     )
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="{width_mm:g}mm" height="{height_mm:g}mm" viewBox="0 0 {width_mm:g} {height_mm:g}">
@@ -277,6 +282,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         default=0.2,
         help="draw connectors instead of hopping across gaps up to this size",
     )
+    parser.add_argument(
+        "--simplify-tolerance-mm",
+        type=float,
+        default=0.05,
+        help="remove path detail within this final SVG tolerance",
+    )
     return parser.parse_args(argv)
 
 
@@ -296,6 +307,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.margin_mm,
             args.stroke_width_mm,
             args.join_gap_mm,
+            args.simplify_tolerance_mm,
         )
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(svg)

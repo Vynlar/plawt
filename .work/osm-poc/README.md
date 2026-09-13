@@ -37,6 +37,7 @@ SVG path, preventing pen lines from connecting unrelated roads.
 Before rendering, the paths are ordered with a nearest-endpoint heuristic and
 two bounded 2-opt refinement passes. The reusable implementation lives in
 `src/ender_pen_plotter/patterns/path_optimizer.py`. Adjacent paths with gaps up
-to `0.2 mm` are joined with a short drawing connector instead of a Z-hop.
+to `0.2 mm` are joined with a short drawing connector instead of a Z-hop. Path
+detail is simplified with a `0.05 mm` Ramer-Douglas-Peucker tolerance.
 
 Data attribution: [OpenStreetMap contributors](https://www.openstreetmap.org/copyright).

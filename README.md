@@ -79,8 +79,8 @@ The generated file uses:
 - `G1 Z<draw_z_mm> F<z_feedrate>` to lower the pen.
 - `G1 Z<lift_z_mm> F<z_feedrate>` to lift the pen.
 
-Speeds are in mm/min. Start around 600-900 mm/min for drawing and increase
-only after checking line quality.
+Speeds are in mm/min. The active profile draws at 1170 mm/min; reduce this if
+line quality suffers after changing the pen.
 
 Before writing a file, the wrapper checks the commanded nozzle envelope, the
 actual pen envelope after offset compensation, and all explicit Z values

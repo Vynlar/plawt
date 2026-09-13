@@ -7,7 +7,13 @@ from .generators.sierpinski import (
     sierpinski_svg,
     sierpinski_triangles,
 )
-from .path_optimizer import join_nearby_paths, optimize_path_order, optimize_paths
+from .path_optimizer import (
+    join_nearby_paths,
+    optimize_path_order,
+    optimize_paths,
+    simplify_paths,
+    simplify_polyline,
+)
 
 __all__ = [
     "GENERATORS",
@@ -17,6 +23,8 @@ __all__ = [
     "join_nearby_paths",
     "optimize_path_order",
     "optimize_paths",
+    "simplify_paths",
+    "simplify_polyline",
     "sierpinski_path",
     "sierpinski_svg",
     "sierpinski_triangles",

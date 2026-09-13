@@ -18,7 +18,7 @@ calibrated = true
 # The 140 x 160 mm page is centered by its pen-tip coordinates on the bed.
 origin_x_mm = 40.0
 origin_y_mm = 30.0
-draw_feedrate = 900.0
+draw_feedrate = 1170.0
 travel_feedrate = 3000.0
 tolerance_mm = 0.002
 home_xy = true

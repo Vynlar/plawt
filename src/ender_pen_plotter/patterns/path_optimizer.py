@@ -23,6 +23,57 @@ def _end(path: Polyline, reversed_path: bool) -> Point:
     return path[0] if reversed_path else path[-1]
 
 
+def _point_segment_distance_squared(point: Point, first: Point, second: Point) -> float:
+    dx = second[0] - first[0]
+    dy = second[1] - first[1]
+    if dx == 0 and dy == 0:
+        return (point[0] - first[0]) ** 2 + (point[1] - first[1]) ** 2
+    position = (
+        ((point[0] - first[0]) * dx + (point[1] - first[1]) * dy)
+        / (dx * dx + dy * dy)
+    )
+    position = max(0.0, min(1.0, position))
+    nearest = (first[0] + position * dx, first[1] + position * dy)
+    return (point[0] - nearest[0]) ** 2 + (point[1] - nearest[1]) ** 2
+
+
+def simplify_polyline(path: Polyline, *, tolerance: float) -> list[Point]:
+    """Reduce a polyline with Ramer-Douglas-Peucker simplification."""
+    if tolerance < 0:
+        raise ValueError("tolerance must not be negative")
+
+    points = list(path)
+    if len(points) < 3:
+        return points
+
+    tolerance_squared = tolerance * tolerance
+    keep = [False] * len(points)
+    keep[0] = keep[-1] = True
+    sections = [(0, len(points) - 1)]
+    while sections:
+        first, last = sections.pop()
+        furthest_distance = tolerance_squared
+        furthest_index = None
+        for index in range(first + 1, last):
+            distance = _point_segment_distance_squared(
+                points[index], points[first], points[last]
+            )
+            if distance > furthest_distance:
+                furthest_distance = distance
+                furthest_index = index
+        if furthest_index is not None:
+            keep[furthest_index] = True
+            sections.extend(((first, furthest_index), (furthest_index, last)))
+    return [point for index, point in enumerate(points) if keep[index]]
+
+
+def simplify_paths(
+    paths: Sequence[Polyline], *, tolerance: float
+) -> list[list[Point]]:
+    """Simplify each path independently without changing its endpoints."""
+    return [simplify_polyline(path, tolerance=tolerance) for path in paths]
+
+
 def optimize_path_order(
     paths: Sequence[Polyline],
     *,

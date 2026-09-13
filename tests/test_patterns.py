@@ -9,6 +9,8 @@ from ender_pen_plotter.patterns import (
     optimize_path_order,
     optimize_paths,
     render_svg,
+    simplify_paths,
+    simplify_polyline,
     sierpinski_svg,
 )
 from ender_pen_plotter.patterns.generators.sierpinski import sierpinski_triangles
@@ -61,6 +63,20 @@ class PatternTests(unittest.TestCase):
     def test_path_joiner_rejects_negative_gaps(self):
         with self.assertRaisesRegex(ValueError, "must not be negative"):
             join_nearby_paths([], max_gap=-1)
+
+    def test_polyline_simplifier_preserves_endpoints_and_removes_collinear_points(self):
+        paths = [[(0, 0), (1, 0), (2, 0), (3, 0)]]
+        self.assertEqual(simplify_paths(paths, tolerance=0), [[(0, 0), (3, 0)]])
+        self.assertEqual(paths, [[(0, 0), (1, 0), (2, 0), (3, 0)]])
+
+    def test_polyline_simplifier_keeps_bends_above_tolerance(self):
+        path = [(0, 0), (1, 0.1), (2, 0)]
+        self.assertEqual(simplify_polyline(path, tolerance=0.2), [(0, 0), (2, 0)])
+        self.assertEqual(simplify_polyline(path, tolerance=0.05), path)
+
+    def test_polyline_simplifier_rejects_negative_tolerance(self):
+        with self.assertRaisesRegex(ValueError, "must not be negative"):
+            simplify_polyline([], tolerance=-1)
 
     def test_sierpinski_generator_exposes_geometry_before_rendering(self):
         self.assertEqual(len(sierpinski_triangles(2)), 9)
