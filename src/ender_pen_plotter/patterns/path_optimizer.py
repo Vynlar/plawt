@@ -108,6 +108,38 @@ def optimize_path_order(
     return route
 
 
+def join_nearby_paths(
+    paths: Sequence[Polyline],
+    *,
+    max_gap: float,
+) -> list[list[Point]]:
+    """Join adjacent paths when their pen-up gap is below ``max_gap``.
+
+    Paths must already be in drawing order and oriented for that order. A
+    connector is intentionally drawn between endpoints that are close enough;
+    larger gaps remain separate paths and therefore retain their pen lift.
+    """
+    if max_gap < 0:
+        raise ValueError("max_gap must not be negative")
+
+    joined: list[list[Point]] = []
+    for path in paths:
+        if len(path) < 2:
+            continue
+        current = list(path)
+        if (
+            joined
+            and _distance(joined[-1][-1], current[0]) <= max_gap
+        ):
+            if joined[-1][-1] == current[0]:
+                joined[-1].extend(current[1:])
+            else:
+                joined[-1].extend(current)
+        else:
+            joined.append(current)
+    return joined
+
+
 def optimize_paths(
     paths: Sequence[Polyline],
     *,

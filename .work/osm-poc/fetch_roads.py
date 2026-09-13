@@ -20,7 +20,10 @@ from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
-from ender_pen_plotter.patterns.path_optimizer import optimize_path_order
+from ender_pen_plotter.patterns.path_optimizer import (
+    join_nearby_paths,
+    optimize_path_order,
+)
 
 
 EARTH_RADIUS_M = 6_378_137.0
@@ -186,12 +189,10 @@ def osm_polylines(data: dict, bbox: Sequence[float]) -> list[tuple[str, list[Pol
     return roads
 
 
-def svg_path(points: Iterable[Point], scale: float, x_offset: float, y_offset: float, page_height: float) -> str:
+def svg_path(points: Iterable[Point]) -> str:
     commands = []
     for index, (x, y) in enumerate(points):
-        page_x = x_offset + x * scale
-        page_y = page_height - (y_offset + y * scale)
-        commands.append(f"{'M' if index == 0 else 'L'} {page_x:.3f},{page_y:.3f}")
+        commands.append(f"{'M' if index == 0 else 'L'} {x:.3f},{y:.3f}")
     return " ".join(commands)
 
 
@@ -202,6 +203,7 @@ def render_svg(
     height_mm: float,
     margin_mm: float,
     stroke_width_mm: float,
+    join_gap_mm: float,
 ) -> str:
     if width_mm <= 2 * margin_mm or height_mm <= 2 * margin_mm:
         raise ValueError("page dimensions must leave room for the margin")
@@ -216,20 +218,23 @@ def render_svg(
     )
     x_offset = (width_mm - map_width * scale) / 2
     y_offset = (height_mm - map_height * scale) / 2
-    path_elements = []
-    path_count = 0
-    for highway, paths in roads:
-        for path in paths:
-            path_count += 1
-            path_data = svg_path(path, scale, x_offset, y_offset, height_mm)
-            path_elements.append(
-                f'  <path data-highway="{html.escape(highway)}" '
-                f'fill="none" stroke="black" stroke-width="{stroke_width_mm:g}" '
-                f'stroke-linecap="round" stroke-linejoin="round" d="{path_data}" />'
-            )
+    page_paths = [
+        [
+            (x_offset + x * scale, height_mm - (y_offset + y * scale))
+            for x, y in path
+        ]
+        for _, paths in roads
+        for path in paths
+    ]
+    joined_paths = join_nearby_paths(page_paths, max_gap=join_gap_mm)
+    path_elements = [
+        f'  <path fill="none" stroke="black" stroke-width="{stroke_width_mm:g}" '
+        f'stroke-linecap="round" stroke-linejoin="round" d="{svg_path(path)}" />'
+        for path in joined_paths
+    ]
     description = (
         "Downtown Providence roads from OpenStreetMap; "
-        f"{len(roads)} optimized road paths, {path_count} SVG paths"
+        f"{len(page_paths)} optimized paths, {len(joined_paths)} joined SVG paths"
     )
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="{width_mm:g}mm" height="{height_mm:g}mm" viewBox="0 0 {width_mm:g} {height_mm:g}">
@@ -266,6 +271,12 @@ def parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--height-mm", type=float, default=160.0)
     parser.add_argument("--margin-mm", type=float, default=8.0)
     parser.add_argument("--stroke-width-mm", type=float, default=0.18)
+    parser.add_argument(
+        "--join-gap-mm",
+        type=float,
+        default=0.2,
+        help="draw connectors instead of hopping across gaps up to this size",
+    )
     return parser.parse_args(argv)
 
 
@@ -284,6 +295,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             args.height_mm,
             args.margin_mm,
             args.stroke_width_mm,
+            args.join_gap_mm,
         )
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(svg)

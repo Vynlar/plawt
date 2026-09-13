@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 from ender_pen_plotter.pattern_cli import main as pattern_main
 from ender_pen_plotter.patterns import (
     euler_path,
+    join_nearby_paths,
     optimize_path_order,
     optimize_paths,
     render_svg,
@@ -42,6 +43,24 @@ class PatternTests(unittest.TestCase):
     def test_path_optimizer_rejects_negative_refinement_passes(self):
         with self.assertRaisesRegex(ValueError, "must not be negative"):
             optimize_paths([], two_opt_passes=-1)
+
+    def test_path_joiner_merges_only_adjacent_nearby_paths(self):
+        paths = [[(0, 0), (1, 0)], [(1, 0), (2, 0)], [(10, 0), (11, 0)]]
+        self.assertEqual(
+            join_nearby_paths(paths, max_gap=0),
+            [[(0, 0), (1, 0), (2, 0)], [(10, 0), (11, 0)]],
+        )
+        self.assertEqual(paths, [[(0, 0), (1, 0)], [(1, 0), (2, 0)], [(10, 0), (11, 0)]])
+
+    def test_path_joiner_draws_a_connector_under_the_gap_threshold(self):
+        self.assertEqual(
+            join_nearby_paths([[(0, 0), (1, 0)], [(1.5, 0), (2, 0)]], max_gap=0.5),
+            [[(0, 0), (1, 0), (1.5, 0), (2, 0)]],
+        )
+
+    def test_path_joiner_rejects_negative_gaps(self):
+        with self.assertRaisesRegex(ValueError, "must not be negative"):
+            join_nearby_paths([], max_gap=-1)
 
     def test_sierpinski_generator_exposes_geometry_before_rendering(self):
         self.assertEqual(len(sierpinski_triangles(2)), 9)
