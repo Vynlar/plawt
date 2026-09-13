@@ -3,7 +3,7 @@
 ## Project Shape
 
 - This is a Python 3.9+ package under `src/ender_pen_plotter`; run commands from the repository root because the default config path is relative.
-- `ender-pen-plotter` wraps the external Rust `svg2gcode` executable; it adds Ender 3 homing, Z pen lift, XY offset compensation, feedrates, and machine-bound validation.
+- `ender-pen-plotter` wraps the external Rust `svg2gcode` executable; it adds configurable homing, Z pen lift, XY offset compensation, feedrates, and machine-bound validation.
 - `ender-pen-preview` renders existing G-code as self-contained HTML;
   `ender-pen-pattern` generates reusable SVG patterns. Shared pattern
   machinery is in `src/ender_pen_plotter/patterns/core.py`; design-specific
@@ -26,15 +26,14 @@
 - Add a pattern by creating a module under `patterns/generators/`, exposing a
   design-specific SVG function plus CLI argument and generation adapters, and
   registering a `PatternGenerator` in `patterns/generators/__init__.py`.
-- Generate interactive pen calibration: `.venv/bin/ender-pen-plotter --calibrate-pen .work/pen-calibration.gcode -c config/ender3.toml`.
 
 ## Machine Constraints
 
 - G-code uses absolute millimeter coordinates. `draw_z_mm` and `lift_z_mm` are absolute nozzle Z heights; speeds are mm/min.
 - `offset_x_mm` and `offset_y_mm` describe the pen tip relative to the nozzle. The converter subtracts these offsets when deriving the nozzle path.
 - `origin_x_mm` and `origin_y_mm` place the SVG page's lower-left corner for the pen, not necessarily the artwork bounds.
-- With the current profile, normal and calibration G-code homes X/Y first, then Z (`G28 X Y` followed by `G28 Z`), then moves to lift height. `home_xy` and `home_z` control this; `home_z = true` assumes the current attachment safely overhangs the bed during Z homing.
-- Calibration emits Marlin `M0` pauses and does not update TOML automatically; record confirmed down/up values and offsets in the profile.
+- With the current profile, G-code homes X/Y first, then Z (`G28 X Y` followed by `G28 Z`), then moves to lift height. `home_xy` and `home_z` control this; enable Z homing only when the mounted tool is safely clear of the bed.
+- Choose absolute `draw_z_mm` and `lift_z_mm` heights with the printer's normal controls, verify drawing contact and travel clearance, then set `calibrated = true` in the profile.
 - Conversion must pass both nozzle and compensated pen bounds checks before writing output. Use the HTML preview to inspect placement before sending G-code to the printer.
 
 ## Pattern Optimization

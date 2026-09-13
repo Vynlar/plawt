@@ -61,11 +61,11 @@ class Config:
     def validate_for_plot(self, allow_uncalibrated: bool = False) -> None:
         if self.pen.draw_z_mm is None:
             raise ConfigError(
-                "pen.draw_z_mm is not set; calibrate the pen contact height first"
+                "pen.draw_z_mm is not set; choose a draw Z height and set it in the profile"
             )
         if not allow_uncalibrated and not self.pen.calibrated:
             raise ConfigError(
-                "pen.calibrated is false; set it to true only after measuring the pen"
+                "pen.calibrated is false; set it to true after choosing and verifying the Z heights"
             )
         if self.pen.lift_z_mm <= self.pen.draw_z_mm:
             raise ConfigError("pen.lift_z_mm must be greater than pen.draw_z_mm")

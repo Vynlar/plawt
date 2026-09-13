@@ -14,11 +14,11 @@ z_max = 250.0
 offset_x_mm = -39.0
 offset_y_mm = -25.0
 
-# The current mechanical calibration makes Z=2 draw cleanly.
+# Choose these absolute nozzle heights with the printer's normal controls.
 draw_z_mm = 2.0
 lift_z_mm = 3.5
 z_feedrate = 300.0
-# Z and XY calibration values are now recorded above.
+# Set true after verifying both heights with the mounted tool.
 calibrated = true
 
 [plot]

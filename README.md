@@ -46,9 +46,9 @@ Start with `config/ender3.toml` as an example machine profile, or create a
 profile for your own printer. Profiles define the machine envelope, pen offset,
 Z heights, feedrates, origin, and homing behavior.
 
-The profile uses the measured Z values (`draw_z_mm = 2` and `lift_z_mm = 3.5`),
-the measured pen offset, and `calibrated = true`. Update these values whenever
-the attachment is remounted or mechanically changed.
+The example profile uses `draw_z_mm = 2`, `lift_z_mm = 3.5`, the current tool
+offset, and `calibrated = true`. Choose these values for your own tool and
+update them whenever the tool or its mount changes.
 
 `offset_x_mm` and `offset_y_mm` are the tool tip's position relative to the
 nozzle in printer coordinates. If the tool tip is 10 mm in +X from the nozzle,
@@ -102,39 +102,31 @@ The result is a self-contained HTML file. It shows the compensated pen path,
 travel moves, a 10 mm grid, the build plate, drawing bounds, pen offset, and a
 warning if the drawing leaves the configured machine limits.
 
-## Pen Calibration
+## Choose Z Heights
 
-Calibration is interactive rather than a blind Z sweep. Generate a calibration
-file with the desired nominal draw and lift heights:
+The profile has two absolute nozzle Z heights:
 
-```sh
-.venv/bin/ender-pen-plotter \
-  --config config/ender3.toml \
-  --calibrate-pen .work/pen-calibration.gcode \
-  --down-z 2.0 \
-  --up-z 5.0 \
-  --calibration-cycles 3
-```
+- `draw_z_mm` is the height used while the tool is drawing.
+- `lift_z_mm` is the height used while the tool is moving without drawing.
 
-The file uses Marlin-compatible `M0` pauses. With the tool clear of the bed,
-continue the file from the controller and it will home X/Y and then Z through
-the configured limit switches. Place paper after homing. It moves to `down_z`,
-pauses so you can adjust the tool until it barely touches the paper, and draws
-a short test line. It then moves to `up_z` so you can confirm the tool clears
-the paper. The process repeats for the requested number of cycles.
-
-Enable Z homing only when the mounted tool is clear of the bed and safe to home.
-Set `home_z = false` if the tool or machine setup requires it. Inspect the file
-before running it and keep the machine attended. `--calibrate-z` remains an
-alias for `--calibrate-pen`.
-
-After confirming the heights, put them in the profile:
+Choose both with the printer's normal controls and jogging workflow. With paper
+on the bed, lower the tool until it draws cleanly without excessive pressure;
+that is the draw height. Raise it until the tool clears the paper reliably
+during travel; that is the lift height. Record those values in the profile:
 
 ```toml
 draw_z_mm = 2.0
 lift_z_mm = 3.5
 calibrated = true
 ```
+
+The values are absolute machine Z coordinates, not a relative hop distance.
+Keep the machine attended while checking them, and set `calibrated = true` only
+after both heights work with the mounted tool. `lift_z_mm` must be greater than
+`draw_z_mm`.
+
+Enable Z homing only when the mounted tool is clear of the bed and safe to home.
+Set `home_z = false` if the tool or machine setup requires it.
 
 ## SVG Preparation
 
